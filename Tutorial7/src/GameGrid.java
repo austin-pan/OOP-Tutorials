@@ -1,22 +1,10 @@
 import java.util.Objects;
 
-public class GameGrid {
-	private Field[][] grid;
+public abstract class GameGrid {
+	protected Field[][] grid;
 	public static final int GRID_DIM = 9;
-	
-	public static void main(String[] args) {
-		for(int i = 0; i < 9; i++) {
-			String filePath = "games/sudoku" + i + ".sd";
-			GameGrid g = new GameGrid(filePath);
-			System.out.println(filePath + ": " + Solver.findAllSolutions2(g).size());
-		}
-		
-		System.out.println();
-		GameGrid g = new GameGrid("games/sudoku0.sd");
-		System.out.println(g);
-		System.out.println(Solver.solve(g));
-		System.out.println(g);
-	}
+	public static final int MAX_VALUE = 9;
+	public static final int MIN_VALUE = 1;
 	
 	public GameGrid(int[][] grid) {
 		initialiseGrid(Objects.requireNonNull(grid));
@@ -29,8 +17,8 @@ public class GameGrid {
 	
 	public GameGrid(GameGrid grid) {
 		this.grid = new Field[GameGrid.GRID_DIM][GameGrid.GRID_DIM];
-		for(int r = 0; r < GameGrid.GRID_DIM; r++) {
-			for(int c = 0; c < GameGrid.GRID_DIM; c++) {
+		for(int r = 0; r < this.grid.length; r++) {
+			for(int c = 0; c < this.grid[r].length; c++) {
 				this.grid[r][c] = new Field(grid.getField(r, c), grid.isInitial(r, c));
 			}
 		}
@@ -49,25 +37,25 @@ public class GameGrid {
 		}
 	}
 	
-    private boolean checkColumn(int x, int value) {
+    private boolean checkColumn(int col, int value) {
     	for(int r = 0; r < grid.length; r++) {
-    		if(grid[r][x].getValue() == value)
+    		if(grid[r][col].getValue() == value)
     			return false;
     	}
     	return true;
     }
 	
-	private boolean checkRow(int y, int value) {
-    	for(int c = 0; c < grid[y].length; c++) {
-    		if(grid[y][c].getValue() == value)
+	private boolean checkRow(int row, int value) {
+    	for(int c = 0; c < grid[row].length; c++) {
+    		if(grid[row][c].getValue() == value)
     			return false;
     	}
     	return true;
     }
     
-    private boolean checkSubGrid(int x, int y, int value) {
-    	int xSub = (x / 3) * 3;
-    	int ySub = (y / 3) * 3;
+    private boolean checkSubGrid(int row, int col, int value) {
+    	int xSub = (col / 3) * 3;
+    	int ySub = (row / 3) * 3;
     	
     	
     	for(int r = ySub; r < ySub+3; r++) {
@@ -82,14 +70,15 @@ public class GameGrid {
     public void clearField(int r, int c) {
 		checkValidInput(r, c);
 		
-		grid[r][c].setValue(0);
+		if(!grid[r][c].isInitial())
+			grid[r][c].setValue(0);
 	}
     
     @Override
     public boolean equals(Object o) {
     	GameGrid other = (GameGrid) o;
-    	for(int r = 0; r < GRID_DIM; r++) {
-    		for(int c = 0; c < GRID_DIM; c++) {
+    	for(int r = 0; r < grid.length; r++) {
+    		for(int c = 0; c < grid[r].length; c++) {
     			if(this.getField(r, c) != other.getField(r, c))
     				return false;
     		}
@@ -99,8 +88,8 @@ public class GameGrid {
     
     public int getNumFreeFields() {
     	int count = 0;
-    	for(int r = 0; r < GRID_DIM; r++) {
-    		for(int c = 0; c < GRID_DIM; c++) {
+    	for(int r = 0; r < grid.length; r++) {
+    		for(int c = 0; c < grid[r].length; c++) {
     			if(grid[r][c].getValue() == 0) {
     				count++;
     			}
@@ -121,12 +110,12 @@ public class GameGrid {
     	grid[r][c].setInitial(initial);
     }
     
-    private boolean isValid(int r, int c, int value) {
-    	return checkRow(r, value) && checkColumn(c, value) && checkSubGrid(c, r, value) && !isInitial(r, c);
+    protected boolean isValid(int r, int c, int value) {
+    	return checkRow(r, value) && checkColumn(c, value) && checkSubGrid(r, c, value) && !isInitial(r, c);
     }
     
     private void checkValidInput(int r, int c) {
-    	if(c < 0 || c > 8 || r < 0 || r > 8) {
+    	if(c < 0 || c > GRID_DIM - 1 || r < 0 || r > GRID_DIM - 1) {
 			throw new IllegalArgumentException("Invalid Index " + c + ", " + r);
 		}
     }
@@ -138,7 +127,7 @@ public class GameGrid {
 	}
 	
 	public boolean setField(int r, int c, int v) {
-		return setField(r, c, v, false);
+		return setField(r, c, v, true);
 	}
 	
 	public boolean setField(int r, int c, int v, boolean silent) {

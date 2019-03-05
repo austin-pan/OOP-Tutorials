@@ -9,17 +9,17 @@ public class Solver {
 		for(int r = 0; r < GameGrid.GRID_DIM; r++) {
 			col: for(int c = 0; c < GameGrid.GRID_DIM; c++) {
 				if(grid.isInitial(r, c)) {
-					if(!(r == 8 && c == 8)) {
+					if(!(r == GameGrid.GRID_DIM - 1 && c == GameGrid.GRID_DIM - 1)) {
 						continue;
 					}
-					solutions.add(new GameGrid(grid));
+					solutions.add(Sudoku.copyGameGrid(grid));
 				} else {
 					int start = grid.getField(r, c) + 1;
 					
 					for(int v = start; v <= 9; v++) {
-						if(grid.setField(r, c, v, true)) {
-							if(r == 8 && c == 8) {
-								solutions.add(new GameGrid(grid));
+						if(grid.setField(r, c, v)) {
+							if(r == GameGrid.GRID_DIM - 1 && c == GameGrid.GRID_DIM -1) {
+								solutions.add(Sudoku.copyGameGrid(grid));
 							} else {
 								continue col;
 							}
@@ -59,8 +59,8 @@ public class Solver {
                    game.clearField(column,row);
                    goBack = true; // track back
                }
-           } else if(column == 8 && row == 8) {
-        	   solutions.add(new GameGrid(game));
+           } else if(column == GameGrid.GRID_DIM - 1 && row == GameGrid.GRID_DIM - 1) {
+        	   solutions.add(Sudoku.copyGameGrid(grid));
         	   goBack = true;
            }
            
@@ -81,9 +81,9 @@ public class Solver {
 
            // we reached the end, hence found a valid solution
            if (column == 0 && row == GameGrid.GRID_DIM) {
-               solutions.add(new GameGrid(game));
-               column = 8;
-               row = 8;
+               solutions.add(Sudoku.copyGameGrid(grid));
+               column = GameGrid.GRID_DIM - 1;
+               row = GameGrid.GRID_DIM - 1;
            }
       }
 
@@ -92,11 +92,11 @@ public class Solver {
     }
 
     private static boolean tryIncrease(GameGrid game, int column, int row) {
-        int val = game.getField(column,row);
+        int val = game.getField(column, row);
 
         boolean success = false;
-        for(int i = val + 1; i <= 9; i++) {
-            if(game.setField(column,row,i, true)) {
+        for(int i = val + 1; i <= GameGrid.MAX_VALUE; i++) {
+            if(game.setField(column, row, i)) {
                 success = true;
                 break;
             }
@@ -129,8 +129,8 @@ public class Solver {
 				
 				int start = grid.getField(r, c) + 1;
 				
-				for(int v = start; v <= 9; v++) {
-					if(grid.setField(r, c, v, true)) {
+				for(int v = start; v <= GameGrid.MAX_VALUE; v++) {
+					if(grid.setField(r, c, v)) {
 						continue col;
 					}
 				}
@@ -156,7 +156,7 @@ public class Solver {
 			return solveRecursiveNext(grid, r, c);
 		}
 		
-		for(int v = 1; v <= 9; v++) {
+		for(int v = GameGrid.MIN_VALUE; v <= GameGrid.MAX_VALUE; v++) {
 			if(grid.setField(r, c, v, true)) {
 				if(solveRecursiveNext(grid, r, c)) {
 					return true;
@@ -169,9 +169,9 @@ public class Solver {
 	}
 	
 	private static boolean solveRecursiveNext(GameGrid grid, int r, int c) {
-		if(r == 8 && c == 8)
+		if(r == GameGrid.GRID_DIM - 1 && c == GameGrid.GRID_DIM - 1)
 			return true;
-		if(c == 8)
+		if(c == GameGrid.GRID_DIM - 1)
 			return solveRecursive(grid, r+1, 0);
 		return solveRecursive(grid, r, c+1);
 	}
