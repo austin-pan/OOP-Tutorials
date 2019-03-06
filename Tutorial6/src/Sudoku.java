@@ -68,10 +68,11 @@ public class Sudoku {
 
     public static void main(String[] args) {
     	GameGrid grid;
-    	if(args.length == 0) {
-    		System.exit(0);
+    	String filepath = "games/sudoku0.sd";
+    	if(args.length > 0) {
+    		filepath = args[0];
     	}
-    	grid = new GameGrid(args[0]);
+    	grid = new GameGrid(filepath);
 
         // TODO print the grid here
         System.out.println(grid);
